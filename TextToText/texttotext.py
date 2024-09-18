@@ -19,6 +19,9 @@ if "modelName" not in st.session_state:
 if "maxTokens" not in st.session_state:
     st.session_state.maxTokens = 0
 
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 st.title("T1: Text to Text")
 st.text("By Jatin Mayekar")
 
@@ -66,9 +69,17 @@ with tab1:
         if "client" not in st.session_state:
             st.session_state.client = OpenAI(api_key=apiKey)
 
+for message in st.session_state.messages:
+    with st.chat_message(name=message["role"]):
+        st.write(message["content"])
+
 prompt = st.chat_input("Hello... how can I help you?", disabled= not st.session_state.bCheckApiKey)
 if prompt:
     with st.chat_message(name="user"):
         st.write(prompt)
     with st.chat_message(name="assistant"):
-        st.write(getOpenAiResponse(prompt))
+        assistantResponse = getOpenAiResponse(prompt)
+        st.write(assistantResponse)
+    
+    st.session_state.messages.append({"role": "user", "content":prompt})
+    st.session_state.messages.append({"role": "assistant", "content":assistantResponse})
