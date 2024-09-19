@@ -65,7 +65,7 @@ with tab1:
     if apiKey != "":
         st.session_state.bCheckApiKey = checkApiKey(apiKey)
         
-    st.session_state.modelName = st.selectbox(label="Select the model name", options=["gpt-4o-mini", "gpt-4o"], disabled=not st.session_state.bCheckApiKey)
+    st.session_state.modelName = st.selectbox(label="Select the model name", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini"], disabled=not st.session_state.bCheckApiKey)
     st.session_state.maxTokens = st.number_input(label="Enter the max output text length", value=1024, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
 
     if st.session_state.bCheckApiKey:
