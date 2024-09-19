@@ -9,6 +9,7 @@ load_dotenv()
 bCheckAPIKey = False
 bReadyToChat = False
 apiKey = ""
+assistantResponse = ""
 
 if "bCheckApiKey" not in st.session_state:
     st.session_state.bCheckApiKey = False
@@ -25,7 +26,8 @@ if "messages" not in st.session_state:
 st.title("T1: Text to Text")
 st.text("By Jatin Mayekar")
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['OpenAI', 'Anthropic', 'Meta AI', 'Mistral', 'Hugging Face', 'Groq X'])
+#tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['OpenAI', 'Anthropic', 'Meta AI', 'Mistral', 'Hugging Face', 'Groq X'])
+tab1, tab2 = st.tabs(['OpenAI', 'Anthropic'])
 
 @st.cache_data
 def checkApiKey(apiKey):
@@ -54,7 +56,7 @@ def getOpenAiResponse(prompt):
             max_tokens=st.session_state.maxTokens
         )
         print(response)
-        return response.choices[0].message.content
+        return response
 
 # OpenAI
 with tab1:
@@ -79,7 +81,13 @@ if prompt:
         st.write(prompt)
     with st.chat_message(name="assistant"):
         assistantResponse = getOpenAiResponse(prompt)
-        st.write(assistantResponse)
+        st.write(assistantResponse.choices[0].message.content)
     
     st.session_state.messages.append({"role": "user", "content":prompt})
-    st.session_state.messages.append({"role": "assistant", "content":assistantResponse})
+    st.session_state.messages.append({"role": "assistant", "content":assistantResponse.choices[0].message.content})
+
+    with st.expander("Chat Stats"):
+        st.write("Chat ID: ", assistantResponse.id)
+        st.write("Model: ", assistantResponse.model)
+        st.write("Completion tokens: ", assistantResponse.usage.completion_tokens)
+        st.write("Finish reason: ", assistantResponse.choices[0].finish_reason)
