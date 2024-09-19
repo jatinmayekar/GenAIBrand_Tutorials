@@ -61,6 +61,7 @@ def getOpenAiResponse(prompt):
 # OpenAI
 with tab1:
     apiKey = st.text_input(label="Enter your API key", type='password', placeholder="sk-...")
+    st.write("Find your API key at https://platform.openai.com/account/api-keys")
     if apiKey != "":
         st.session_state.bCheckApiKey = checkApiKey(apiKey)
         
