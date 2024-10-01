@@ -1,9 +1,10 @@
 import streamlit as st
 import openai
 from openai import OpenAI
+import anthropic
 import os
 from dotenv import load_dotenv
-
+from urllib.error import HTTPError
 load_dotenv()
 
 bCheckAPIKey = False
@@ -33,21 +34,74 @@ st.text("By Jatin Mayekar")
 tab1, tab2 = st.tabs(['OpenAI', 'Anthropic'])
 
 @st.cache_data
-def checkApiKey(apiKey):
-    try:
-        client = OpenAI(api_key=apiKey)
-        response = client.chat.completions.create(
-            messages=[{
-                        "role": "user",
-                        "content": "Say this is a test",
-                    }],
-            model="gpt-4o-mini"
-        )
-        print(response)
-        return True
-    except openai.AuthenticationError as e:
-        st.error("Invalid API key. You can find your API key at https://platform.openai.com/account/api-keys")
-        return False
+def checkApiKey(tabIndex, apiKey):
+    if tabIndex == 1:
+        print("OpenAI")
+        try:
+            client = OpenAI(api_key=apiKey)
+            response = client.chat.completions.create(
+                messages=[{
+                            "role": "user",
+                            "content": "Say this is a test",
+                        }],
+                model="gpt-4o-mini"
+            )
+            print(response)
+            return True
+        except openai.AuthenticationError as e:
+            st.error("Invalid API key. You can find your API key at https://platform.openai.com/account/api-keys")
+            return False
+    elif tabIndex == 2:
+        print("Anthropic")
+        try:
+            client = anthropic.Anthropic(api_key=apiKey)
+            message = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=1000,
+                temperature=0,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Say this is a test"
+                        }
+                    ]
+                }]
+            )
+            print(message) #print(message.content[0].text)
+            return True
+        except HTTPError as e:
+            if e.code == 400:
+                st.error("Invalid Request Error. There was an issue with the format or content of your request.")
+                return False
+            elif e.code == 401:
+                st.error("Authentication Error. There's an issue with your API key.")
+                return False
+            elif e.code == 403:
+                st.error("Permission Error. Your API key does not have permission to use the specified resource.")
+                return False
+            elif e.code == 404:
+                st.error("Not Found Error. The requested resource was not found.")
+                return False
+            elif e.code == 413:
+                st.error("Request Too Large. Request exceeds the maximum allowed number of bytes.")
+                return False
+            elif e.code == 429:
+                st.error("Rate Limit Error. Your account has hit a rate limit.")
+                return False
+            elif e.code == 500:
+                st.error("API Error. An unexpected error has occurred internal to Anthropic's systems.")
+                return False
+            elif e.code == 529:
+                st.error("Overloaded Error. Anthropic's API is temporarily overloaded.")
+                return False
+            else:
+                st.error(f"An unexpected error occurred: {e}")
+                return False
+    else:
+        st.error("API key check failed. Try selecting the correct platform and reneter the corret API Key. You can find your API key at https://console.anthropic.com/settings/keys. You can contact the developer at jatinmayekar27@gmail.com")
+        print("Wrong tabIndex: ", tabIndex)
     
 def getOpenAiResponse(prompt):
         response = st.session_state.client.chat.completions.create(
@@ -63,17 +117,35 @@ def getOpenAiResponse(prompt):
 
 # OpenAI
 with tab1:
-    apiKey = st.text_input(label="Enter your API key", type='password', placeholder="sk-...")
+    apiKey = st.text_input(label="Enter your API key", type='password', placeholder="sk-proj...")
     st.write("Find your API key at https://platform.openai.com/account/api-keys")
     if apiKey != "":
-        st.session_state.bCheckApiKey = checkApiKey(apiKey)
+        st.session_state.bCheckApiKey = checkApiKey(1, apiKey)
         
     st.session_state.modelName = st.selectbox(label="Select the model name", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini", "o1-preview"], disabled=not st.session_state.bCheckApiKey)
     st.session_state.maxTokens = st.number_input(label="Enter the max output text length", value=1024, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
-
+    # take number of words as inputs rather than tokens - more intuitive than tokens. 1 token = 0.75 words
+    # source: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
+    
     if st.session_state.bCheckApiKey:
         if "client" not in st.session_state:
             st.session_state.client = OpenAI(api_key=apiKey)
+
+# Anthropic
+with tab2:
+    apiKey = st.text_input(label="Enter your API key", type='password', placeholder="sk-ant...")
+    st.write("Find your API key at https://console.anthropic.com/settings/keys")
+    if apiKey != "":
+        st.session_state.bCheckApiKey = checkApiKey(2, apiKey)
+        
+    st.session_state.modelName = st.selectbox(label="Model", options=["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"], disabled=not st.session_state.bCheckApiKey)
+    st.session_state.maxTokens = st.number_input(label="Temperature (Higher for creative responses, lower for more predictable responses)", value=0, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=1)
+    st.session_state.maxTokens = st.number_input(label="Max output text length", value=1024, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
+    # take nuber of words as inputs rather than tokens - more intuitive than tokens
+
+    if st.session_state.bCheckApiKey:
+        if "client" not in st.session_state:
+            st.session_state.client = anthropic.Anthropic(api_key=apiKey)
 
 for message in st.session_state.messages:
     with st.chat_message(name=message["role"]):
