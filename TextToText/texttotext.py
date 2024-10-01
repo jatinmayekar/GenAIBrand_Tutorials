@@ -23,6 +23,9 @@ if "maxTokens" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+if "totalCost" not in st.session_state:
+    st.session_state.totalCost = 0
+
 st.title("T1: Text to Text")
 st.text("By Jatin Mayekar")
 
@@ -65,7 +68,7 @@ with tab1:
     if apiKey != "":
         st.session_state.bCheckApiKey = checkApiKey(apiKey)
         
-    st.session_state.modelName = st.selectbox(label="Select the model name", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini"], disabled=not st.session_state.bCheckApiKey)
+    st.session_state.modelName = st.selectbox(label="Select the model name", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini", "o1-preview"], disabled=not st.session_state.bCheckApiKey)
     st.session_state.maxTokens = st.number_input(label="Enter the max output text length", value=1024, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
 
     if st.session_state.bCheckApiKey:
@@ -87,8 +90,33 @@ if prompt:
     st.session_state.messages.append({"role": "user", "content":prompt})
     st.session_state.messages.append({"role": "assistant", "content":assistantResponse.choices[0].message.content})
 
+    if st.session_state.modelName=="gpt-4o-mini":
+        cost_per_prompt_token = 0.00500
+        cost_per_completion_token = 0.01500
+    elif st.session_state.modelName=="gpt-4o":
+        cost_per_prompt_token = 0.000150
+        cost_per_completion_token = 0.000600
+    elif st.session_state.modelName=="gpt-4-turbo":
+        cost_per_prompt_token = 0.0100
+        cost_per_completion_token = 0.0300
+    elif st.session_state.modelName=="o1-mini":
+        cost_per_prompt_token = 0.003
+        cost_per_completion_token = 0.012
+    elif st.session_state.modelName=="o1-preview":
+        cost_per_prompt_token = 0.015
+        cost_per_completion_token = 0.060
+
     with st.expander("Chat Stats"):
         st.write("Chat ID: ", assistantResponse.id)
         st.write("Model: ", assistantResponse.model)
-        st.write("Completion tokens: ", assistantResponse.usage.completion_tokens)
+        st.write("Prompt (input) tokens: ", assistantResponse.usage.prompt_tokens)
+        st.write("Completion (output) tokens: ", assistantResponse.usage.completion_tokens)
+        st.write("Reasoning tokens: ", assistantResponse.usage.completion_tokens_details['reasoning_tokens'])
         st.write("Finish reason: ", assistantResponse.choices[0].finish_reason)
+        st.write("Function Calls: ", assistantResponse.choices[0].message.function_call)
+        st.write("Tool Calls: ", assistantResponse.choices[0].message.tool_calls)
+        currentCost = (assistantResponse.usage.prompt_tokens*cost_per_prompt_token/1000) + (assistantResponse.usage.completion_tokens*cost_per_completion_token/1000)
+        st.write("Cost: $ ", currentCost)
+        st.session_state.totalCost = st.session_state.totalCost + currentCost
+        st.write("Total Cost: $ ", st.session_state.totalCost)
+        st.write("See your total api usgae here: https://platform.openai.com/organization/usage")
