@@ -12,6 +12,7 @@ bReadyToChat = False
 apiKey = ""
 assistantResponse = ""
 bPlatformSwitch = False
+userModelSelection = ""
 
 if "bCheckApiKey" not in st.session_state:
     st.session_state.bCheckApiKey = False
@@ -115,7 +116,24 @@ def checkApiKey(apiKey):
     else:
         st.error("API key check failed. Try selecting the correct platform and reneter the corret API Key. You can find your API key at https://console.anthropic.com/settings/keys. You can contact the developer at jatinmayekar27@gmail.com")
         print("Wrong tabIndex: ", st.session_state.tabIndex)
-    
+
+@st.cache_data
+def getModelName(modelSelection):
+    if modelSelection == "GPT-4o mini (cheap, fast, lightweight tasks such as writing emails, summarizing articles)":
+        return "gpt-4o-mini"
+    elif modelSelection == "GPT-4o (expensive, complex tasks such as writing research papers, detailed analysis)":
+        return "gpt-4o"
+    elif modelSelection == "o1-mini (More affordable and quicker than o1-preview, best for help with coding, math, and science, great at STEM subjects.)":
+        return "o1-mini"
+    elif modelSelection == "o1-preview (Expensive, for solving tough problems in any subject. It's like having a really smart friend who thinks carefully before answering difficult questions about anything)":
+        return "o1-preview" 
+    elif modelSelection == "Claude 3.5 Sonnet (Most intelligent and most capable, fast and cheaper than opus, use it for complex projects such as researching or analysis)":
+        return "claude-3-5-sonnet-20240620" 
+    elif modelSelection == "Claude 3 Opus (Intelligent than sonnet 3, most expensive, great for writing and complex tasks)":
+        return "claude-3-opus-20240229" 
+    elif modelSelection == "Claude 3 Haiku (Fast, cost-effective, great for quick questions and speedy tasks)":
+        return "claude-3-haiku-20240307"        
+
 def getOpenAiResponse(prompt):
         response = st.session_state.clientOpenAI.chat.completions.create(
             messages=[{
@@ -166,11 +184,12 @@ with st.sidebar:
             if apiKey != "":
                 st.session_state.bCheckApiKey = checkApiKey(apiKey)
                 
-            st.session_state.modelName = st.selectbox(label="Model", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini", "o1-preview"], disabled=not st.session_state.bCheckApiKey)
+            userModelSelection = st.selectbox(label="Model", options=["GPT-4o mini (cheap, fast, lightweight tasks such as writing emails, summarizing articles)", "GPT-4o (expensive, complex tasks such as writing research papers, detailed analysis)", "o1-mini (More affordable and quicker than o1-preview, best for help with coding, math, and science, great at STEM subjects.)", "o1-preview (Expensive, for solving tough problems in any subject. It's like having a really smart friend who thinks carefully before answering difficult questions about anything)"], disabled=not st.session_state.bCheckApiKey)
+            st.session_state.modelName = getModelName(userModelSelection)
             st.session_state.maxWords = st.number_input(label="Max word length", value=30, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
-            st.session_state.maxTokens = st.session_state.maxWords * 1.5
-            # take number of words as inputs rather than tokens - more intuitive than tokens. 1 token = 0.75 words
+            # take number of words as inputs rather than tokens - more intuitive than tokens. 1 token = 0.75 words so 1 word = 1.33 token
             # source: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
+            st.session_state.maxTokens = int(st.session_state.maxWords * 0.75) + 20
             
             if st.session_state.bCheckApiKey:
                 if "client" not in st.session_state:
@@ -190,10 +209,11 @@ with st.sidebar:
             if apiKey != "":
                 st.session_state.bCheckApiKey = checkApiKey(apiKey)
                 
-            st.session_state.modelName = st.selectbox(label="Model", options=["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307", "claude-3-sonnet-20240229"], disabled=not st.session_state.bCheckApiKey)
-            st.session_state.temperature = st.number_input(label="Temperature (Higher for creative responses, lower for more predictable responses)", value=0, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=1)
+            userModelSelection = st.selectbox(label="Model", options=["Claude 3.5 Sonnet (Most intelligent and most capable, fast and cheaper than opus, use it for complex projects such as researching or analysis)", "Claude 3 Opus (Intelligent than sonnet 3, most expensive, great for writing and complex tasks)", "Claude 3 Haiku (Fast, cost-effective, great for quick questions and speedy tasks)"], disabled=not st.session_state.bCheckApiKey)
+            st.session_state.modelName = getModelName(userModelSelection)
+            st.session_state.temperature = st.number_input(label="Creativity Dial (0 to 1 - 0 will get you the most expected answers and deterministic such as typical scientific answers and 1 will get you random, diverse and creative answers such as suggesting a butterfly farm on Mars)", value=0.0, disabled=not st.session_state.bCheckApiKey, min_value=0.0, max_value=1.0, format="%f")
             st.session_state.maxWords = st.number_input(label="Max word length", value=30, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
-            st.session_state.maxTokens = st.session_state.maxWords * 1.5
+            st.session_state.maxTokens = int(st.session_state.maxWords * 0.75) + 20
 
             if st.session_state.bCheckApiKey:
                 if "client" not in st.session_state:
