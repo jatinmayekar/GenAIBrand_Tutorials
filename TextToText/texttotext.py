@@ -28,6 +28,9 @@ if "modelName" not in st.session_state:
 if "maxTokens" not in st.session_state:
     st.session_state.maxTokens = 0
 
+if "maxWords" not in st.session_state:
+    st.session_state.maxWords = 0
+
 if "temperature" not in st.session_state:
     st.session_state.temperature = 0
 
@@ -163,8 +166,9 @@ with st.sidebar:
             if apiKey != "":
                 st.session_state.bCheckApiKey = checkApiKey(apiKey)
                 
-            st.session_state.modelName = st.selectbox(label="Select the model name", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini", "o1-preview"], disabled=not st.session_state.bCheckApiKey)
-            st.session_state.maxTokens = st.number_input(label="Enter the max output text length", value=1024, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
+            st.session_state.modelName = st.selectbox(label="Model", options=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "o1-mini", "o1-preview"], disabled=not st.session_state.bCheckApiKey)
+            st.session_state.maxWords = st.number_input(label="Max word length", value=30, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
+            st.session_state.maxTokens = st.session_state.maxWords * 1.5
             # take number of words as inputs rather than tokens - more intuitive than tokens. 1 token = 0.75 words
             # source: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
             
@@ -188,8 +192,8 @@ with st.sidebar:
                 
             st.session_state.modelName = st.selectbox(label="Model", options=["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307", "claude-3-sonnet-20240229"], disabled=not st.session_state.bCheckApiKey)
             st.session_state.temperature = st.number_input(label="Temperature (Higher for creative responses, lower for more predictable responses)", value=0, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=1)
-            st.session_state.maxTokens = st.number_input(label="Max output text length", value=1024, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
-            # take number of words as inputs rather than tokens - more intuitive than tokens
+            st.session_state.maxWords = st.number_input(label="Max word length", value=30, disabled=not st.session_state.bCheckApiKey, min_value=0, max_value=10000000)
+            st.session_state.maxTokens = st.session_state.maxWords * 1.5
 
             if st.session_state.bCheckApiKey:
                 if "client" not in st.session_state:
