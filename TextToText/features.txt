@@ -1,3 +1,2 @@
-1.take number of words as inputs rather than tokens - more intuitive than tokens. 1 token = 0.75 words. source: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
+1. DONE - take number of words as inputs rather than tokens - more intuitive than tokens. 1 token = 0.75 words. source: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
 2. an low cost fast llm as the main interface rather than any buttons or choices - just a pure llm experience
-3. a token count displayed at input
