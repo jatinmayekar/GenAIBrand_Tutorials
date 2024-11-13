@@ -1,0 +1,15 @@
+Hello all, Jatin Mayekar here. Nice to meet everyone. I'm a robotics engineer at FANUC America and currently on the track to become a Generative AI Applied Engineer. Would love to connect on LinkedIn: https://www.linkedin.com/in/jatin-mayekar/
+
+Just wanted to post my takeaways from Day 1:
+1. ReAct prompting framework: https://react-lm.github.io/
+2. Stop sequences - can be used to give external response/answers to the LLM during its action task in ReAct framework
+2. Built-in Code Execution: using tools='code_execution'
+3. Output control using top_k, top_p, and temperature and how they individually contribute to the final output - 
+
+Based on my testing, recommendations for Deterministic Output (analysis csv attached):
+
+1. For factual/simple tasks: Any configuration works
+2. For creative tasks: Impossible to achieve perfect determinism
+3. For mixed tasks: Use temperature=0.0,  top_p=1.0, top_k has minimal impact
+
+https://discord.com/channels/1101210829807956100/1303438361117069363/1305770751072141387

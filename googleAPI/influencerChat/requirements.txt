@@ -1,0 +1,6 @@
+streamlit
+google-generativeai
+chromadb
+python-dotenv
+tqdm
+ipython
