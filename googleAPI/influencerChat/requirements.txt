@@ -4,3 +4,4 @@ chromadb
 python-dotenv
 tqdm
 ipython
+pysqlite3-binary==0.5.2.post1  # Add this line
