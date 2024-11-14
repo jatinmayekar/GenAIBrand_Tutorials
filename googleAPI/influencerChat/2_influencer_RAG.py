@@ -1,4 +1,4 @@
-# Add this at the very top of your file, before any other imports
+# These imports MUST be at the very top of the file, before any other imports
 __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
@@ -20,7 +20,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 
 # Sample Instagram posts - In production, you would load these from a database
 DOCUMENTS = [
-    "hi, I am VL, Digital creator, Documenting self discovery & everything that brings me joy!🌻"
+    "hi, I am VL, Digital creator, Documenting self discovery & everything that brings me joy!🌻",
     "Big Basin Hike. big basin state park. ocean view summit. meteor trail. sleeping forest trail. middle ridge trail. People always told me that their favorite hike is in Big Basin, and now I know why!❤️. Lush green!🌲#BigBasinStatePark #HikeCalifornia #TrailLife #ExploreBigBasin",
     'Springtime in California means endless blooming hikes! 🌸🌿 The vibrant greens and beautiful views elevate my mood every time. Where should I explore next?#CaliforniaSpring #SpringHikes #HikingCalifornia',
     "Zion National Park,Utah.8C, some serious sun burns, a giant human poop (after all it is a scary hike) and what not. Angels Landing!🌌",
@@ -47,7 +47,8 @@ class GeminiEmbeddingFunction(EmbeddingFunction):
 
 def initialize_rag():
     embed_fn = GeminiEmbeddingFunction()
-    chroma_client = chromadb.Client()
+    # Use persistent storage for ChromaDB
+    chroma_client = chromadb.PersistentClient(path="./chroma_db")
     db = chroma_client.get_or_create_collection(name="instagram_db", embedding_function=embed_fn)
     
     # Add documents if collection is empty
